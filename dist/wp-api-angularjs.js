@@ -160,6 +160,7 @@
 	exports['default'] = ["$httpProvider", function ($httpProvider) {
 	    'ngInject';
 	
+	    $get.$inject = ["$http"];
 	    var baseUrl = undefined,
 	        authType = null,
 	        httpProperties = {};
@@ -179,7 +180,6 @@
 	        };
 	    });
 	
-	    $get.$inject = ["$http"];
 	    return {
 	        $get: $get,
 	        setBaseUrl: setBaseUrl,
@@ -535,9 +535,9 @@
 
 /***/ },
 /* 3 */
-/*!***************************!*\
-  !*** ./~/buffer/index.js ***!
-  \***************************/
+/*!*******************************************************!*\
+  !*** (webpack)/~/node-libs-browser/~/buffer/index.js ***!
+  \*******************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer, global) {/*!
@@ -548,9 +548,11 @@
 	 */
 	/* eslint-disable no-proto */
 	
+	'use strict'
+	
 	var base64 = __webpack_require__(/*! base64-js */ 4)
 	var ieee754 = __webpack_require__(/*! ieee754 */ 5)
-	var isArray = __webpack_require__(/*! is-array */ 6)
+	var isArray = __webpack_require__(/*! isarray */ 6)
 	
 	exports.Buffer = Buffer
 	exports.SlowBuffer = SlowBuffer
@@ -630,8 +632,10 @@
 	    return new Buffer(arg)
 	  }
 	
-	  this.length = 0
-	  this.parent = undefined
+	  if (!Buffer.TYPED_ARRAY_SUPPORT) {
+	    this.length = 0
+	    this.parent = undefined
+	  }
 	
 	  // Common case.
 	  if (typeof arg === 'number') {
@@ -762,6 +766,10 @@
 	if (Buffer.TYPED_ARRAY_SUPPORT) {
 	  Buffer.prototype.__proto__ = Uint8Array.prototype
 	  Buffer.__proto__ = Uint8Array
+	} else {
+	  // pre-set for values that may exist in the future
+	  Buffer.prototype.length = undefined
+	  Buffer.prototype.parent = undefined
 	}
 	
 	function allocate (that, length) {
@@ -911,10 +919,6 @@
 	  }
 	}
 	Buffer.byteLength = byteLength
-	
-	// pre-set for values that may exist in the future
-	Buffer.prototype.length = undefined
-	Buffer.prototype.parent = undefined
 	
 	function slowToString (encoding, start, end) {
 	  var loweredCase = false
@@ -2007,7 +2011,7 @@
 	      }
 	
 	      // valid surrogate pair
-	      codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
+	      codePoint = (leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00) + 0x10000
 	    } else if (leadSurrogate) {
 	      // valid bmp char, but last char was a lead
 	      if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
@@ -2085,13 +2089,13 @@
 	  return i
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./~/buffer/index.js */ 3).Buffer, (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! (webpack)/~/node-libs-browser/~/buffer/index.js */ 3).Buffer, (function() { return this; }())))
 
 /***/ },
 /* 4 */
-/*!********************************!*\
-  !*** ./~/base64-js/lib/b64.js ***!
-  \********************************/
+/*!*********************************************************************!*\
+  !*** (webpack)/~/node-libs-browser/~/buffer/~/base64-js/lib/b64.js ***!
+  \*********************************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -2222,9 +2226,9 @@
 
 /***/ },
 /* 5 */
-/*!****************************!*\
-  !*** ./~/ieee754/index.js ***!
-  \****************************/
+/*!*****************************************************************!*\
+  !*** (webpack)/~/node-libs-browser/~/buffer/~/ieee754/index.js ***!
+  \*****************************************************************/
 /***/ function(module, exports) {
 
 	exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -2315,43 +2319,15 @@
 
 /***/ },
 /* 6 */
-/*!*****************************!*\
-  !*** ./~/is-array/index.js ***!
-  \*****************************/
+/*!*****************************************************************!*\
+  !*** (webpack)/~/node-libs-browser/~/buffer/~/isarray/index.js ***!
+  \*****************************************************************/
 /***/ function(module, exports) {
 
+	var toString = {}.toString;
 	
-	/**
-	 * isArray
-	 */
-	
-	var isArray = Array.isArray;
-	
-	/**
-	 * toString
-	 */
-	
-	var str = Object.prototype.toString;
-	
-	/**
-	 * Whether or not the given `val`
-	 * is an array.
-	 *
-	 * example:
-	 *
-	 *        isArray([]);
-	 *        // > true
-	 *        isArray(arguments);
-	 *        // > false
-	 *        isArray('');
-	 *        // > false
-	 *
-	 * @param {mixed} val
-	 * @return {bool}
-	 */
-	
-	module.exports = isArray || function (val) {
-	  return !! val && '[object Array]' == str.call(val);
+	module.exports = Array.isArray || function (arr) {
+	  return toString.call(arr) == '[object Array]';
 	};
 
 
@@ -2377,7 +2353,7 @@
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
@@ -2675,6 +2651,7 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
 	var _default = (function () {
+	    _default.$inject = ["$injector"];
 	    function _default($injector) {
 	        'ngInject';
 	
@@ -2684,7 +2661,6 @@
 	        this.defaultHttpProperties = $injector.get('WpApi').getDefaultHttpProperties();
 	        this.$http = $injector.get('$http');
 	    }
-	    _default.$inject = ["$injector"];
 	
 	    _createClass(_default, [{
 	        key: 'getList',
@@ -2710,6 +2686,36 @@
 	
 	            return this.$http(angular.merge({}, this.defaultHttpProperties, {
 	                method: 'GET',
+	                url: this.baseUrl + suffix,
+	                params: params,
+	                data: data,
+	                headers: headers
+	            }));
+	        }
+	    }, {
+	        key: 'post',
+	        value: function post(suffix) {
+	            var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	            var data = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+	            var headers = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
+	
+	            return this.$http(angular.merge({}, this.defaultHttpProperties, {
+	                method: 'POST',
+	                url: this.baseUrl + suffix,
+	                params: params,
+	                data: data,
+	                headers: headers
+	            }));
+	        }
+	    }, {
+	        key: 'delete',
+	        value: function _delete(suffix) {
+	            var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	            var data = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+	            var headers = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
+	
+	            return this.$http(angular.merge({}, this.defaultHttpProperties, {
+	                method: 'DELETE',
 	                url: this.baseUrl + suffix,
 	                params: params,
 	                data: data,
@@ -2754,7 +2760,7 @@
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
@@ -2961,7 +2967,7 @@
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
@@ -3068,7 +3074,7 @@
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
@@ -3172,7 +3178,7 @@
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
@@ -3274,7 +3280,7 @@
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
@@ -3378,7 +3384,7 @@
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
@@ -3593,7 +3599,7 @@
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
@@ -3671,6 +3677,74 @@
 	
 	        /**
 	         * @ngdoc function
+	         * @name wp-api-angularjs.$wpApiUsers#create
+	         * @access public
+	         * @methodOf wp-api-angularjs.$wpApiUsers
+	         *
+	         * @description
+	         * Creates a new user
+	         *
+	         * @param {object} data  Required: {string|Object} – Data to be sent as the request message data.
+	         * @param {object} params  Optional: {Object.<string|Object>} – Map of strings or objects which will be appended as GET parameters.
+	         * @param {object} headers  Optional: {Object} – Map of strings or functions which return strings representing HTTP headers
+	         * @returns {Object} Promise
+	         */
+	    }, {
+	        key: 'create',
+	        value: function create(data, params, headers) {
+	            return _get(Object.getPrototypeOf(_default.prototype), 'post', this).call(this, '/users', params, data, headers);
+	        }
+	
+	        /**
+	         * @ngdoc function
+	         * @name wp-api-angularjs.$wpApiUsers#update
+	         * @access public
+	         * @methodOf wp-api-angularjs.$wpApiUsers
+	         *
+	         * @description
+	         * Updates a user by ID
+	         *
+	         * @param {int} userId  The users id
+	         * @param {object} data  Required: {string|Object} – Data to be sent as the request message data.
+	         * @param {object} params  Optional: {Object.<string|Object>} – Map of strings or objects which will be appended as GET parameters.
+	         * @param {object} headers  Optional: {Object} – Map of strings or functions which return strings representing HTTP headers
+	         * @returns {Object} Promise
+	         */
+	    }, {
+	        key: 'update',
+	        value: function update(userId, data, params, headers) {
+	            _get(Object.getPrototypeOf(_default.prototype), 'requiredInput', this).call(this, '$wpApiUsers:update', {
+	                userId: userId
+	            });
+	            return _get(Object.getPrototypeOf(_default.prototype), 'post', this).call(this, '/users/{$userId}', params, data, headers);
+	        }
+	
+	        /**
+	         * @ngdoc function
+	         * @name wp-api-angularjs.$wpApiUsers#delete
+	         * @access public
+	         * @methodOf wp-api-angularjs.$wpApiUsers
+	         *
+	         * @description
+	         * Deletes a user by ID
+	         *
+	         * @param {int} userId  The users id
+	         * @param {object} data  Required: {string|Object} – Data to be sent as the request message data.
+	         * @param {object} params  Optional: {Object.<string|Object>} – Map of strings or objects which will be appended as GET parameters.
+	         * @param {object} headers  Optional: {Object} – Map of strings or functions which return strings representing HTTP headers
+	         * @returns {Object} Promise
+	         */
+	    }, {
+	        key: 'delete',
+	        value: function _delete(userId, data, params, headers) {
+	            _get(Object.getPrototypeOf(_default.prototype), 'requiredInput', this).call(this, '$wpApiUsers:delete', {
+	                userId: userId
+	            });
+	            return _get(Object.getPrototypeOf(_default.prototype), 'delete', this).call(this, '/users/{$userId}', data, params, headers);
+	        }
+	
+	        /**
+	         * @ngdoc function
 	         * @name wp-api-angularjs.$wpApiUsers#me
 	         * @access public
 	         * @methodOf wp-api-angularjs.$wpApiUsers
@@ -3718,7 +3792,7 @@
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 	
@@ -3834,7 +3908,7 @@
 	    value: true
 	});
 	
-	var _get = function get(_x5, _x6, _x7) { var _again = true; _function: while (_again) { var object = _x5, property = _x6, receiver = _x7; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x5 = parent; _x6 = property; _x7 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x5, _x6, _x7) { var _again = true; _function: while (_again) { var object = _x5, property = _x6, receiver = _x7; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x5 = parent; _x6 = property; _x7 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
@@ -3849,6 +3923,7 @@
 	var _parentServiceJs2 = _interopRequireDefault(_parentServiceJs);
 	
 	var _default = (function () {
+	    _default.$inject = ["$injector"];
 	    function _default($injector) {
 	        'ngInject';
 	
@@ -3856,7 +3931,6 @@
 	
 	        this.$injector = $injector;
 	    }
-	    _default.$inject = ["$injector"];
 	
 	    /**
 	     * @ngdoc function
@@ -3894,6 +3968,7 @@
 	exports['default'] = _default;
 	
 	var Custom = (function (_Parent) {
+	    Custom.$inject = ["$injector", "entityName"];
 	    _inherits(Custom, _Parent);
 	
 	    function Custom($injector, entityName) {
@@ -3904,7 +3979,6 @@
 	        _get(Object.getPrototypeOf(Custom.prototype), 'constructor', this).call(this, $injector);
 	        this.entityName = entityName;
 	    }
-	    Custom.$inject = ["$injector", "entityName"];
 	
 	    _createClass(Custom, [{
 	        key: 'getList',
